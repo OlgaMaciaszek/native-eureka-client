@@ -1,0 +1,5 @@
+- Spring Native Dependency
+- Spring AOT Plugin
+- Graal Maven Plugin
+- Spring Boot Maven Plugin classifier
+- <buildArgs>--enable-http --enable-https</buildArgs>

@@ -1,0 +1,13 @@
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]     (clinit):   2,069.06 ms,  5.52 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]   (typeflow):  48,891.44 ms,  5.52 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]    (objects):  57,822.93 ms,  5.52 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]   (features):   7,755.65 ms,  5.52 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]     analysis: 119,945.63 ms,  5.52 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]     universe:   4,496.26 ms,  5.49 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]      (parse):  10,613.89 ms,  5.49 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]     (inline):  14,766.94 ms,  6.22 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]    (compile):  62,967.39 ms,  7.21 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]      compile:  93,278.55 ms,  7.21 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]        image:  12,784.20 ms,  7.34 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]        write:   1,183.83 ms,  7.34 GB
+[io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication:63445]      [total]: 240,636.62 ms,  7.34 GB
