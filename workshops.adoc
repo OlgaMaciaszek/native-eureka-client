@@ -1,0 +1,96 @@
+= Commands
+
+== Download a simple project
+
+```
+$ curl https://start.spring.io/starter.tgz -d dependencies=actuator,web -d language=java -d type=maven-project -d baseDir="spring-loves-k8s" -d artifactId="spring-loves-k8s" -d name="spring-loves-k8s" | tar -xzvf -
+$ cd spring-loves-k8s/
+$ echo "management.endpoint.health.probes.enabled=true" >> src/main/resources/application.properties
+$ echo "management.health.readinessState.enabled=true" >> src/main/resources/application.properties
+$ echo "management.health.livenessState.enabled=true" >> src/main/resources/application.properties
+```
+
+== Build boot image
+
+```
+$ ./mvnw -DskipTests spring-boot:build-image -Dspring-boot.build-image.imageName=docker.io/springcloud/spring-loves-k8s
+```
+
+== Push image
+
+```
+$ docker push springcloud/spring-loves-k8s
+```
+
+== Run image
+
+```
+$ docker run docker.io/springcloud/spring-loves-k8s -p 8080:8080
+```
+
+== Generate deployment
+
+```
+$ mkdir -p k8s && kubectl create deployment spring-loves-k8s --image docker.io/springcloud/spring-loves-k8s -o yaml --dry-run=client > k8s/deployment.yaml
+```
+
+== Generate service
+
+```
+$ kubectl create service clusterip spring-loves-k8s --tcp 80:8080 -o yaml --dry-run=client > k8s/service.yaml
+```
+
+== Update the deployment yaml to contain probes
+
+
+
+
+
+
+management.endpoint.health.probes.enabled=true
+
+management.health.livenessState.enabled=true
+
+management.health.readinessState.enabled=true
+
+<spring-boot.build-image.imageName>localhost:5000/apps/demo</spring-boot.build-image.imageName>
+
+cat >> k8s/deployment.yaml << EOF
+        readinessProbe:
+          httpGet:
+            port: 8080
+            path: /actuator/health/readiness
+        livenessProbe:
+          httpGet:
+            port: 8080
+            path: /actuator/health/liveness
+EOF
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  ...
+  name: k8s-demo-app
+spec:
+...
+  template:
+    ...
+    spec:
+      containers:
+        ...
+        readinessProbe:
+          httpGet:
+            port: 8080
+            path: /actuator/health/readiness
+        livenessProbe:
+          httpGet:
+            port: 8080
+            path: /actuator/health/liveness
+
+
+
+
+$ kubectl apply -f ./k8s
+
+
