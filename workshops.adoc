@@ -3,11 +3,11 @@
 == Download a simple project
 
 ```
-$ curl https://start.spring.io/starter.tgz -d dependencies=actuator,web -d language=java -d type=maven-project -d baseDir="spring-loves-k8s" -d artifactId="spring-loves-k8s" -d name="spring-loves-k8s" | tar -xzvf -
+$ curl https://start.spring.io/starter.tgz -d dependencies=actuator,web,cloud-starter -d language=java -d type=maven-project -d baseDir="spring-loves-k8s" -d artifactId="spring-loves-k8s" -d name="spring-loves-k8s" | tar -xzvf -
 $ cd spring-loves-k8s/
-$ echo "management.endpoint.health.probes.enabled=true" >> src/main/resources/application.properties
-$ echo "management.health.readinessState.enabled=true" >> src/main/resources/application.properties
-$ echo "management.health.livenessState.enabled=true" >> src/main/resources/application.properties
+$ cat > src/main/resources/application.properties <<EOL
+management.endpoints.web.exposure.include=*
+EOL
 ```
 
 == Build boot image
@@ -28,70 +28,171 @@ $ docker push springcloud/spring-loves-k8s
 $ docker run docker.io/springcloud/spring-loves-k8s -p 8080:8080
 ```
 
+== Point kubectl to proper namespace
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create namespace spring-cloud
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml config set-context --current --namespace=spring-cloud
+```
+
+== Create a configmap for deployment
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create configmap log-level --from-literal=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=DEBUG
+```
+
+== Print the config map yaml
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get configmap log-level -o yaml > k8s/config-map.yml
+```
+
+== Modify the config map yaml to add a label
+
+```
+apiVersion: v1
+data:
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: DEBUG
+kind: ConfigMap
+metadata:
+  labels:
+    spring.cloud.kubernetes.config: true
+  name: log-level
+  namespace: spring-cloud
+```
+
+== Store the config map on drive
+
+```
+$ cat >./k8s/config-map.yml <<EOL
+apiVersion: v1
+data:
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: DEBUG
+kind: ConfigMap
+metadata:
+  labels:
+    "spring.cloud.kubernetes.config": "true"
+  name: log-level
+  namespace: spring-cloud
+EOL
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s/config-map.yml
+```
+
 == Generate deployment
 
 ```
-$ mkdir -p k8s && kubectl create deployment spring-loves-k8s --image docker.io/springcloud/spring-loves-k8s -o yaml --dry-run=client > k8s/deployment.yaml
+$ mkdir -p k8s && kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create deployment spring-loves-k8s --image docker.io/springcloud/spring-loves-k8s -o yaml --dry-run=client > k8s/deployment.yaml
+```
+
+=== Update yaml
+
+```bash
+$ cat >./k8s/deployment.yaml <<EOL
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: spring-loves-k8s
+  name: spring-loves-k8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-loves-k8s
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: spring-loves-k8s
+    spec:
+      containers:
+      - image: docker.io/springcloud/spring-loves-k8s
+        name: spring-loves-k8s
+        envFrom:
+        - configMapRef:
+            name: log-level
+        resources: {}
+        readinessProbe:
+          httpGet:
+            port: 8080
+            path: /actuator/health/readiness
+        livenessProbe:
+          httpGet:
+            port: 8080
+            path: /actuator/health/liveness
+status: {}
+EOL
 ```
 
 == Generate service
 
 ```
-$ kubectl create service clusterip spring-loves-k8s --tcp 80:8080 -o yaml --dry-run=client > k8s/service.yaml
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create service clusterip spring-loves-k8s --tcp 80:8080 -o yaml --dry-run=client > k8s/service.yaml
 ```
 
-== Update the deployment yaml to contain probes
+=== Update
 
-
-
-
-
-
-management.endpoint.health.probes.enabled=true
-
-management.health.livenessState.enabled=true
-
-management.health.readinessState.enabled=true
-
-<spring-boot.build-image.imageName>localhost:5000/apps/demo</spring-boot.build-image.imageName>
-
-cat >> k8s/deployment.yaml << EOF
-        readinessProbe:
-          httpGet:
-            port: 8080
-            path: /actuator/health/readiness
-        livenessProbe:
-          httpGet:
-            port: 8080
-            path: /actuator/health/liveness
-EOF
-
-
-apiVersion: apps/v1
-kind: Deployment
+```
+$ cat >./k8s/service.yaml <<EOL
+apiVersion: v1
+kind: Service
 metadata:
-  ...
-  name: k8s-demo-app
+  creationTimestamp: null
+  labels:
+    app: spring-loves-k8s
+  name: spring-loves-k8s
 spec:
-...
-  template:
-    ...
-    spec:
-      containers:
-        ...
-        readinessProbe:
-          httpGet:
-            port: 8080
-            path: /actuator/health/readiness
-        livenessProbe:
-          httpGet:
-            port: 8080
-            path: /actuator/health/liveness
+  ports:
+  - name: 80-8080
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: spring-loves-k8s
+  type: LoadBalancer
+status:
+  loadBalancer: {}
+EOL
+```
 
+== (OPTIONAL) Update service type to LoadBalancer for external IP
 
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: spring-loves-k8s
+  name: spring-loves-k8s
+  namespace: spring-cloud
+spec:
+  ports:
+  - name: 80-8080
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: spring-loves-k8s
+  type: ClusterIP
+status:
+  loadBalancer: {}
+```
 
+== Apply changes to the kubernetes cluster
 
-$ kubectl apply -f ./k8s
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s
+```
+
+== (OPTIONAL) Get public ip
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get services --namespace=spring-cloud
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml port-forward service/spring-loves-k8s 8080:80
+```
 
 == (OPTIONAL) Open port 80 to the public
 
@@ -101,3 +202,152 @@ $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml port-forward 
 
 == Show k8s actuator endpoints
 
+```
+
+$ http :8080/actuator/health
+$ http :8080/actuator/health/liveness
+$ http :8080/actuator/health/readiness
+```
+
+== Show logs with INFO only
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get pods
+# we get the pod name e.g. [spring-loves-k8s-64cc4dd87c-qvv7b]
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-loves-k8s-64cc4dd87c-qvv7b
+```
+
+
+
+== Attach the config map to the container
+
+```yml
+containers:
+- image: docker.io/springcloud/spring-loves-k8s
+    name: spring-loves-k8s
+    envFrom:
+        - configMapRef:
+            name: log-level
+```
+
+== Redeploy
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s
+```
+
+== Show logs with DEBUG too
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get pods
+# we get the pod name e.g. [spring-loves-k8s-64cc4dd87c-qvv7b]
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-loves-k8s-64cc4dd87c-qvv7b
+```
+
+== Apply config-watcher.yml
+
+https://hub.docker.com/r/springcloud/spring-cloud-kubernetes-configuration-watcher
+
+```bash
+$ cat >./k8s/config-watcher.yml <<EOL
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configuration-watcher
+      name: spring-cloud-kubernetes-configuration-watcher
+    spec:
+      ports:
+        - name: http
+          port: 8888
+          targetPort: 8888
+      selector:
+        app: spring-cloud-kubernetes-configuration-watcher
+      type: ClusterIP
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configuration-watcher
+      name: spring-cloud-kubernetes-configuration-watcher
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      labels:
+        app: spring-cloud-kubernetes-configuration-watcher
+      name: spring-cloud-kubernetes-configuration-watcher:view
+    roleRef:
+      kind: Role
+      apiGroup: rbac.authorization.k8s.io
+      name: namespace-reader
+    subjects:
+      - kind: ServiceAccount
+        name: spring-cloud-kubernetes-configuration-watcher
+  - apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      namespace: default
+      name: namespace-reader
+    rules:
+      - apiGroups: ["", "extensions", "apps"]
+        resources: ["configmaps", "pods", "services", "endpoints", "secrets"]
+        verbs: ["get", "list", "watch"]
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: spring-cloud-kubernetes-configuration-watcher-deployment
+    spec:
+      selector:
+        matchLabels:
+          app: spring-cloud-kubernetes-configuration-watcher
+      template:
+        metadata:
+          labels:
+            app: spring-cloud-kubernetes-configuration-watcher
+        spec:
+          serviceAccount: spring-cloud-kubernetes-configuration-watcher
+          containers:
+            - name: spring-cloud-kubernetes-configuration-watcher
+              image: springcloud/spring-cloud-kubernetes-configuration-watcher:2.0.2
+              imagePullPolicy: IfNotPresent
+              readinessProbe:
+                httpGet:
+                  port: 8888
+                  path: /actuator/health/readiness
+              livenessProbe:
+                httpGet:
+                  port: 8888
+                  path: /actuator/health/liveness
+              ports:
+                - containerPort: 8888
+EOL
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s/config-watcher.yml
+```
+
+== Follow the logs
+
+```bash
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-loves-k8s-64cc4dd87c-qvv7b --follow
+```
+
+== We change the config map entry back to INFO
+
+```
+$ cat >./k8s/config-map.yml <<EOL
+apiVersion: v1
+data:
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: INFO
+kind: ConfigMap
+metadata:
+  labels:
+    "spring.cloud.kubernetes.config": "true"
+  name: log-level
+  namespace: spring-cloud
+EOL
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s/config-map.yml
+```
+
+Now we should see the difference!
