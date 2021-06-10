@@ -3,3 +3,27 @@
 - Graal Maven Plugin
 - Spring Boot Maven Plugin classifier
 - <buildArgs>--enable-http --enable-https</buildArgs>
+
+sdk use java 21.0.0.2.r11-grl
+ gu install native-image
+
+./mvnw package -Pnative-image
+
+ ./target/io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication
+
+ ./target/io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication -Xmn6M
+
+ http GET :8080/instances/native-client
+
+http GET :8080/services
+
+http POST :8080/actuator/startup | tee startup.log
+
+
+185.3 M
+2.7 s
+
+
+0.326 s
+80.5 M
+-Xmn6M --> 11.7

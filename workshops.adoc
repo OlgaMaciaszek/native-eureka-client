@@ -93,4 +93,11 @@ spec:
 
 $ kubectl apply -f ./k8s
 
+== (OPTIONAL) Open port 80 to the public
+
+```
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml port-forward service/spring-loves-k8s 8080:80
+```
+
+== Show k8s actuator endpoints
 
