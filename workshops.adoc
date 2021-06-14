@@ -44,6 +44,7 @@ $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create config
 == Print the config map yaml
 
 ```
+$ mkdir -p k8s
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get configmap log-level -o yaml > k8s/config-map.yml
 ```
 
