@@ -35,10 +35,10 @@ $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create namesp
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml config set-context --current --namespace=spring-cloud
 ```
 
-== Create a configmap for deployment
+== Create a configmap for deployment (INFO LOGS)
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create configmap log-level --from-literal=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=DEBUG
+$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create configmap log-level --from-literal=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=INFO
 ```
 
 == Print the config map yaml
@@ -50,27 +50,13 @@ $ mkdir -p k8s
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get configmap log-level -o yaml > k8s/config-map.yml
 ```
 
-== Modify the config map yaml to add a label
-
-```
-apiVersion: v1
-data:
-  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: DEBUG
-kind: ConfigMap
-metadata:
-  labels:
-    spring.cloud.kubernetes.config: true
-  name: log-level
-  namespace: spring-cloud
-```
-
 == Store the config map on drive
 
 ```
 $ cat >./k8s/config-map.yml <<EOL
 apiVersion: v1
 data:
-  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: DEBUG
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: INFO
 kind: ConfigMap
 metadata:
   labels:
@@ -371,13 +357,13 @@ $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-loves-k8s-64cc4dd87c-qvv7b --follow
 ```
 
-== We change the config map entry back to INFO
+== We change the config map entry back to DEBUG
 
 ```
 $ cat >./k8s/config-map.yml <<EOL
 apiVersion: v1
 data:
-  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: INFO
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: DEBUG
 kind: ConfigMap
 metadata:
   labels:
