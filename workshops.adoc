@@ -43,6 +43,8 @@ $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create config
 
 == Print the config map yaml
 
+We will show how to do it but for the demo let's just do the "Store the config map on drive" point
+
 ```
 $ mkdir -p k8s
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get configmap log-level -o yaml > k8s/config-map.yml
