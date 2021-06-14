@@ -228,10 +228,17 @@ containers:
             name: log-level
 ```
 
-== Redeploy
+== (Optional) Redeploy
 
 ```
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s
+```
+
+== Restart (if not taking optional step)
+
+```
+$ kubectl scale --replicas=0 -f k8s/deployment.yaml
+$ kubectl scale --replicas=1 -f k8s/deployment.yaml
 ```
 
 == Show logs with DEBUG too
