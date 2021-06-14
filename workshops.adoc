@@ -1,5 +1,13 @@
 = Commands
 
+== Clear anything running in your cluster
+
+Here we assume that in k8s you have all the yamls you've created in the previous workshop run.
+
+```
+kubectl delete -f k8s/
+```
+
 == Download a simple project
 
 ```
