@@ -190,16 +190,10 @@ status:
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s
 ```
 
-== (OPTIONAL) Get public ip
+== Open port 80 to the public
 
 ```
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get services --namespace=spring-cloud
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml port-forward service/spring-loves-k8s 8080:80
-```
-
-== (OPTIONAL) Open port 80 to the public
-
-```
 $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml port-forward service/spring-loves-k8s 8080:80
 ```
 
@@ -221,8 +215,9 @@ $ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-l
 ```
 
 
+== (Optional) Attach the config map to the container
 
-== Attach the config map to the container
+This should already be done.
 
 ```yml
 containers:
