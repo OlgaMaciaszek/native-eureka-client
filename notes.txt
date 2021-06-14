@@ -1,8 +1,11 @@
-- Spring Native Dependency
-- Spring AOT Plugin
+- Spring Native Dependency - mandatory classes + configuration API
+- Spring AOT Plugin - improve native image compatibility and footprint;  automatically generating configuration files
 - Graal Maven Plugin
-- Spring Boot Maven Plugin classifier
+- Spring Boot Maven Plugin classifier - avoid clash with Graal Maven Plugin during package phase
 - <buildArgs>--enable-http --enable-https</buildArgs>
+
+Now available from start.spring.io// buildpacks support
+
 
 sdk use java 21.0.0.2.r11-grl
  gu install native-image
@@ -12,6 +15,11 @@ sdk use java 21.0.0.2.r11-grl
  ./target/io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication
 
  ./target/io.github.olgamaciaszek.nativeeurekaclient.nativeeurekaclientapplication -Xmn6M
+
+
+A native image, when being executed, does not run on the Java HotSpot VM but on the runtime system provided with GraalVM. That runtime includes all necessary components, and one of them is the memory management. Java objects that a native image allocates at run time reside in the area called “the Java heap”.
+ -Xmn - the size of the young generation in bytes
+
 
  http GET :8080/instances/native-client
 
