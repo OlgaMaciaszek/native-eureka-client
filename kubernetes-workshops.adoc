@@ -39,14 +39,14 @@ $ docker run docker.io/springcloud/spring-loves-k8s -p 8080:8080
 == Point kubectl to proper namespace
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create namespace spring-cloud
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml config set-context --current --namespace=spring-cloud
+$ kubectl create namespace spring-cloud
+$ kubectl config set-context --current --namespace=spring-cloud
 ```
 
 == Create a configmap for deployment (INFO LOGS)
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create configmap log-level --from-literal=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=INFO
+$ kubectl create configmap log-level --from-literal=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK=INFO
 ```
 
 == Print the config map yaml
@@ -55,7 +55,7 @@ We will show how to do it but for the demo let's just do the "Store the config m
 
 ```
 $ mkdir -p k8s
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get configmap log-level -o yaml > k8s/config-map.yml
+$ kubectl get configmap log-level -o yaml > k8s/config-map.yml
 ```
 
 == Store the config map on drive
@@ -72,13 +72,13 @@ metadata:
   name: log-level
   namespace: spring-cloud
 EOL
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s/config-map.yml
+$ kubectl apply -f ./k8s/config-map.yml
 ```
 
 == Generate deployment
 
 ```
-$ mkdir -p k8s && kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create deployment spring-loves-k8s --image docker.io/springcloud/spring-loves-k8s -o yaml --dry-run=client > k8s/deployment.yaml
+$ mkdir -p k8s && kubectl create deployment spring-loves-k8s --image docker.io/springcloud/spring-loves-k8s -o yaml --dry-run=client > k8s/deployment.yaml
 ```
 
 === Update yaml
@@ -126,7 +126,7 @@ EOL
 == Generate service
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml create service clusterip spring-loves-k8s --tcp 80:8080 -o yaml --dry-run=client > k8s/service.yaml
+$ kubectl create service clusterip spring-loves-k8s --tcp 80:8080 -o yaml --dry-run=client > k8s/service.yaml
 ```
 
 === Update
@@ -181,14 +181,14 @@ status:
 == Apply changes to the kubernetes cluster
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s
+$ kubectl apply -f ./k8s
 ```
 
 == Open port 80 to the public
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get services --namespace=spring-cloud
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml port-forward service/spring-loves-k8s 8080:80
+$ kubectl get services --namespace=spring-cloud
+$ kubectl port-forward service/spring-loves-k8s 8080:80
 ```
 
 == Show k8s actuator endpoints
@@ -203,9 +203,9 @@ $ http :8080/actuator/health/readiness
 == Show logs with INFO only
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get pods
+$ kubectl get pods
 # we get the pod name e.g. [spring-loves-k8s-64cc4dd87c-qvv7b]
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-loves-k8s-64cc4dd87c-qvv7b
+$ kubectl logs spring-loves-k8s-64cc4dd87c-qvv7b
 ```
 
 
@@ -225,7 +225,7 @@ containers:
 == (Optional) Redeploy
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s
+$ kubectl apply -f ./k8s
 ```
 
 == Restart (if not taking optional step)
@@ -238,9 +238,9 @@ $ kubectl scale --replicas=1 -f k8s/deployment.yaml
 == Show logs with DEBUG too
 
 ```
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml get pods
+$ kubectl get pods
 # we get the pod name e.g. [spring-loves-k8s-64cc4dd87c-qvv7b]
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-loves-k8s-64cc4dd87c-qvv7b
+$ kubectl logs spring-loves-k8s-64cc4dd87c-qvv7b
 ```
 
 == Create roles for the config watcher
@@ -356,13 +356,13 @@ items:
               ports:
                 - containerPort: 8888
 EOL
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s/config-watcher.yml
+$ kubectl apply -f ./k8s/config-watcher.yml
 ```
 
 == Follow the logs
 
 ```bash
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml logs spring-loves-k8s-64cc4dd87c-qvv7b --follow
+$ kubectl logs spring-loves-k8s-64cc4dd87c-qvv7b --follow
 ```
 
 == We change the config map entry back to DEBUG
@@ -379,7 +379,7 @@ metadata:
   name: log-level
   namespace: spring-cloud
 EOL
-$ kubectl --kubeconfig="${HOME}"/.kube/kubeconfig-spring-cloud.yml apply -f ./k8s/config-map.yml
+$ kubectl apply -f ./k8s/config-map.yml
 ```
 
 Now we should see the difference!
