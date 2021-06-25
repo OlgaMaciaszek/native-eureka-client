@@ -25,7 +25,7 @@ public class ServicesController {
 		return discoveryClient.getServices();
 	}
 
-	@GetMapping("/instances/{serviceId}")
+	@GetMapping("/services/{serviceId}/instances")
 	public List<ServiceInstance> getInstances(@PathVariable("serviceId") String serviceId){
 		return discoveryClient.getInstances(serviceId);
 	}
