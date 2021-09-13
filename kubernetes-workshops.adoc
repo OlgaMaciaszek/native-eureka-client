@@ -30,10 +30,18 @@ $ ./mvnw -DskipTests spring-boot:build-image -Dspring-boot.build-image.imageName
 $ docker push springcloud/spring-loves-k8s
 ```
 
-== Run image
+== Run image that simulates being run in Kubernetes
 
 ```
-$ docker run docker.io/springcloud/spring-loves-k8s -p 8080:8080
+$ docker run -e KUBERNETES_SERVICE_HOST="bla" -e KUBERNETES_SERVICE_PORT=1234 -p 8080:8080 docker.io/springcloud/spring-loves-k8s
+```
+
+=== [OPTIONAL] Show k8s actuator endpoints
+
+```
+$ http :8080/actuator/health
+$ http :8080/actuator/health/liveness
+$ http :8080/actuator/health/readiness
 ```
 
 == Point kubectl to proper namespace
