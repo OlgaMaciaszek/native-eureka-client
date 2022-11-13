@@ -14,6 +14,8 @@ Use GraalVM with SDKMan:
 (not working)
 
 `mvn spring-boot:build-image -Pnative`
+`docker run docker.io/library/native-eureka-client:0.0.1-SNAPSHOT`
+(not working)
 
 # Run the executable
 
